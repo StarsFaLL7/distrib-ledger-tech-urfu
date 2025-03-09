@@ -17,11 +17,9 @@ function Transfer({ address, setBalance, privateKey, setPrivateKey }) {
       amount: parseInt(sendAmount),
       recipient: recipient,
       timestamp: Date.now(),
-      hash: "",
       hexSign: ""
     }
     const trxHashBytes = keccak256(Uint8Array.from(JSON.stringify(transaction)));
-    transaction.hash = toHex(trxHashBytes);
     const signature = secp.secp256k1.sign(trxHashBytes, privateKey);
     transaction.hexSign = signature.toCompactHex();
     console.log("trx: ", transaction);

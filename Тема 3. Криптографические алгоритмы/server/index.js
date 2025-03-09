@@ -4,6 +4,7 @@ const cors = require("cors");
 const port = 3042;
 const keccak256 = require("ethereum-cryptography/keccak.js").keccak256;
 const secp256k1 = require("ethereum-cryptography/secp256k1").secp256k1;
+const toHex = require("ethereum-cryptography/utils").toHex;
 
 app.use(cors());
 app.use(express.json());
@@ -23,9 +24,11 @@ app.get("/balance/:address", (req, res) => {
 app.post("/send", (req, res) => {
   const transaction = req.body;
   console.log(transaction);
-  const { sender, recipient, amount, hash, hexSign } = transaction;
-  const isSigned = secp256k1.verify(hexSign, hash, sender);
+  const { sender, recipient, amount, hexSign } = transaction;
+  const trxHash = GetTransactionHash(transaction);
+  const isSigned = secp256k1.verify(hexSign, trxHash, sender);
   console.log("Is signed: ", isSigned);
+  console.log("Transaction's hash: ", trxHash);
   if (isSigned){
     setInitialBalance(sender);
     setInitialBalance(recipient);
@@ -51,4 +54,12 @@ function setInitialBalance(address) {
   if (!balances[address]) {
     balances[address] = 0;
   }
+}
+
+function GetTransactionHash(transaction) {
+  const sign = transaction.hexSign;
+  transaction.hexSign = "";
+  const hash = toHex(keccak256(Uint8Array.from(JSON.stringify(transaction))));
+  transaction.hexSign = sign;
+  return hash;
 }
